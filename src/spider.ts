@@ -13,7 +13,7 @@ const getConfigFromEnv = (name: string, defaultValue: string | number, isNumber 
 export type TaskResult = {
   success: boolean;
   reason?: string;
-  noRety?: boolean;
+  noRetry?: boolean;
 }
 
 export interface FollowTaskPrarms {
@@ -141,6 +141,8 @@ export class TaskSpider {
     failed: 0,
     idle: 0,
   }
+
+  processCount = 0;
 
   options: NodeSpiderOptions = {
     sleep: 0,
@@ -300,9 +302,11 @@ export class TaskSpider {
       const shouldContinue = await this.processTask();
       if (this.exiting) {
         setTimeout(() => { }, this.options.maxTimeout * 2);
+        this.processCount--;
         return;
       }
       if (this.options.debug) {
+        this.processCount--;
         this.exit();
         return;
       }
@@ -312,6 +316,7 @@ export class TaskSpider {
         await sleep(this.options.sleep);
         await runRecur();
       }
+      this.processCount--;
     }
     if (this.options.debug) {
       runRecur();
@@ -320,7 +325,8 @@ export class TaskSpider {
     for (let i = 0; i < this.options.maxConnection; i++) {
       runRecur();
     }
-    this.exit();
+    this.processCount = this.options.maxConnection;
+
   }
 
   async rollbackTask(taskContext: TaskContext, reason: string) {
@@ -525,7 +531,7 @@ export class TaskSpider {
       this.logWithTask(taskContext, "执行任务成功");
       return taskResult;
     }
-    if (taskResult.noRety) {
+    if (taskResult.noRetry) {
       this.logWithTask(taskContext, "执行任务失败，不重试");
       return taskResult
     }

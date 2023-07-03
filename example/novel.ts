@@ -8,6 +8,7 @@ const spider = new NodeSpider({
   debug: true,
   appName: "task-spider",
   metrics: true,
+  metricsPort: 9999,
 })
 
 spider.taskHandler = async (ctx) => {

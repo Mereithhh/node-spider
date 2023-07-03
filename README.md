@@ -36,33 +36,24 @@ const spider = new NodeSpider({
   taskDB: "testSpider",
   taskCollection: "tasks",
   saveCollection: "result",
-  mongoUrl: "mongodb://localhost:27017",
-  nodeName: "testNode",
+  debug: true,
+  appName: "task-spider",
+  metrics: true,
+  metricsPort: 9999,
 })
 
 spider.taskHandler = async (ctx) => {
-  const { url } = ctx.task;
+  const { url } = ctx.taskContext.task;
   const res = await ctx.request({
     method: "GET",
     url,
     responseType: "arraybuffer"
   });
-  // 需要的话可以转码
   const string = ctx.convert(res.data, "gbk")
   const html = ctx.cheerio.load(string)
   const title = html("title").text();
   const content = html(".content").text();
-  // 保存结果
-  await ctx.save({
-    result: {
-      title,
-      content,
-    }
-  })
-  // 我也可以增加新任务
-  await ctx.followTask({
-    url: "https://www.biquge.co/0_410/9449247.html",
-  })
+  console.log(title, content)
   return {
     success: true
   }
@@ -78,27 +69,7 @@ const main = async () => {
 
 }
 
+
 main();
 
-```
-
-## 初始化参数列表
-
-```typescript
-export interface InitNodeSpiderOptions {
-  sleep?: number;
-  maxConnection?: number;
-  maxRetry?: number;
-  maxTimeout?: number;
-  taskDB: string;
-  // 任务搜集的集合
-  taskCollection: string;
-  // 需要处理的任务状态
-  getTaskStatus?: string;
-  // 保存的任务集合
-  saveCollection: string;
-  debug?: boolean;
-  logFilter?: string | null;
-  mongoUrl?: string;
-}
 ```

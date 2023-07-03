@@ -38,7 +38,6 @@ const spider = new NodeSpider({
   saveCollection: "result",
   mongoUrl: "mongodb://localhost:27017",
   nodeName: "testNode",
-  timeCost: true,
 })
 
 spider.taskHandler = async (ctx) => {

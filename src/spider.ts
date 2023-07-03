@@ -3,6 +3,7 @@ import iconv from "iconv-lite";
 import cheerio, { CheerioAPI } from "cheerio"
 import { MongoClient } from "mongodb";
 import os from "node:os"
+import { MetricsController } from "./metrics";
 
 const sleep = (delay: number) => new Promise(resolve => setTimeout(resolve, delay));
 const getConfigFromEnv = (name: string, defaultValue: string | number, isNumber = false) => isNumber ? Number(process.env[name.toUpperCase()]) : process.env[name.toUpperCase()] || defaultValue;
@@ -39,7 +40,7 @@ export interface TaskHandlerParams {
   convert: (buffer: Buffer, sourceEncoding: string) => string;
 }
 
-export type TaskStatus = "idle" | "success" | "failed"
+export type TaskStatus = "idle" | "success" | "failed" | "processing"
 
 export interface Task {
   _id: any;
@@ -74,6 +75,9 @@ export interface InitNodeSpiderOptions {
   logFilter?: string | null;
   mongoUrl?: string;
   nodeName?: string;
+  metrics?: boolean;
+  metricsPort?: number;
+  appName: string;
 }
 
 export interface NodeSpiderOptions {
@@ -92,9 +96,19 @@ export interface NodeSpiderOptions {
   logFilter: string | null;
   mongoUrl: string | null;
   nodeName: string;
+  metrics: boolean;
+  metricsPort: number;
+  appName: string;
 }
 
 export type taskHandlerFn = (ctx: TaskHandlerParams) => Promise<TaskResult>;
+
+export interface TaskCount {
+  processing: number;
+  success: number;
+  failed: number;
+  idle: number;
+}
 
 export class TaskContext {
   task: Task;
@@ -120,6 +134,14 @@ export class TaskContext {
 export class NodeSpider {
   hasInited = false;
   taskHandler: taskHandlerFn | null = null;
+  metricsController: MetricsController | null = null;
+  taskCount: TaskCount = {
+    processing: 0,
+    success: 0,
+    failed: 0,
+    idle: 0,
+  }
+
   options: NodeSpiderOptions = {
     sleep: 0,
     maxConnection: 10,
@@ -133,6 +155,9 @@ export class NodeSpider {
     logFilter: null,
     mongoUrl: null,
     nodeName: os.hostname(),
+    metrics: false,
+    metricsPort: 9880,
+    appName: "task-spider",
   }
   exiting = false;
   client: MongoClient | null = null;
@@ -236,6 +261,17 @@ export class NodeSpider {
     });
   }
 
+  async initMetrics() {
+    if (!this.options.metrics) return;
+    const metrics = new MetricsController({
+      port: this.options.metricsPort,
+      appName: this.options.appName,
+      node: this.options.nodeName,
+    });
+    await metrics.listen();
+    this.metricsController = metrics;
+  }
+
   async init() {
     if (this.hasInited) return;
     if (!this.taskHandler) {
@@ -245,6 +281,7 @@ export class NodeSpider {
     this.setExit();
     this.printConfig();
     await this.initDB();
+    await this.initMetrics();
     this.hasInited = true;
   }
 
@@ -442,8 +479,23 @@ export class NodeSpider {
         { _id: taskContext.task._id },
         errorMessage ? { $set: { status, errorMessage, node: this.options.nodeName, cost: taskContext.cost } } : { $set: { status, node: this.options.nodeName, cost: taskContext.cost } }
       );
+      await this.setTaskCount(status, "add");
     } catch (err) {
       this.logWithTask(taskContext, "更新状态失败", err)
+    }
+  }
+
+  async setTaskCount(status: TaskStatus, mode: "add" | "divide") {
+    if (!this.hasInited) await this.init();
+    try {
+      if (mode === "add") {
+        this.taskCount[status] += 1;
+      } else {
+        this.taskCount[status] -= 1;
+      }
+      await this.metricsController?.setStatusGauge(status, this.taskCount[status])
+    } catch (err) {
+      this.log("更新 task count 状态失败", err)
     }
   }
 
@@ -453,7 +505,7 @@ export class NodeSpider {
       { $set: { status: "processing", node: this.options.nodeName } }
     );
     if (!task?.value) return null;
-
+    await this.setTaskCount("processing", "add");
     return task?.value as unknown as Task;
   }
 

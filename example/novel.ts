@@ -6,6 +6,8 @@ const spider = new NodeSpider({
   taskCollection: "tasks",
   saveCollection: "result",
   debug: true,
+  appName: "task-spider",
+  metrics: true,
 })
 
 spider.taskHandler = async (ctx) => {

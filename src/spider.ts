@@ -312,7 +312,6 @@ export class TaskSpider {
         return;
       }
 
-
       if (shouldContinue) {
         await sleep(this.options.sleep);
         await runRecur();
@@ -323,11 +322,10 @@ export class TaskSpider {
       runRecur();
       return;
     }
+    this.processCount = this.options.maxConnection;
     for (let i = 0; i < this.options.maxConnection; i++) {
       runRecur();
     }
-    this.processCount = this.options.maxConnection;
-
   }
 
   async rollbackTask(taskContext: TaskContext, reason: string) {

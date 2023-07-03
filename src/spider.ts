@@ -18,6 +18,7 @@ export type TaskResult = {
 
 export interface FollowTaskPrarms {
   url: string;
+  extra?: object;
   customCollection?: string;
   customDB?: string;
   customMongoClient?: MongoClient;
@@ -410,6 +411,7 @@ export class TaskSpider {
         createdAt: new Date(),
         updatedAt: new Date(),
         node: this.options.nodeName,
+        ...(options.extra || {})
       }
       const dstDB = options.customDB || this.options.taskDB;
       const dstCol = options.customCollection || this.options.taskCollection;
@@ -439,6 +441,7 @@ export class TaskSpider {
         updatedAt: new Date(),
         parentTaskId: taskContext.task._id,
         node: this.options.nodeName,
+        ...(options.extra || {})
       }
       const dstDB = options.customDB || this.options.taskDB;
       const dstCol = options.customCollection || this.options.taskCollection;

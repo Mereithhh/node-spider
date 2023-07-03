@@ -303,11 +303,11 @@ export class TaskSpider {
       const shouldContinue = await this.processTask();
       if (this.exiting) {
         setTimeout(() => { }, this.options.maxTimeout * 2);
-        this.processCount--;
+        // this.processCount--;
         return;
       }
       if (this.options.debug) {
-        this.processCount--;
+        // this.processCount--;
         this.exit();
         return;
       }
@@ -316,13 +316,13 @@ export class TaskSpider {
         await sleep(this.options.sleep);
         await runRecur();
       }
-      this.processCount--;
+      // this.processCount--;
     }
     if (this.options.debug) {
       runRecur();
       return;
     }
-    this.processCount = this.options.maxConnection;
+    // this.processCount = this.options.maxConnection;
     for (let i = 0; i < this.options.maxConnection; i++) {
       runRecur();
     }
@@ -489,8 +489,10 @@ export class TaskSpider {
       if (taskContext.cost) {
         await this.metricsController?.setTimeCoustGauge(taskContext.cost);
       }
+      return true;
     } catch (err) {
       this.logWithTask(taskContext, "更新状态失败", err)
+      return false;
     }
   }
 

@@ -480,6 +480,9 @@ export class TaskSpider {
         errorMessage ? { $set: { status, errorMessage, node: this.options.nodeName, cost: taskContext.cost } } : { $set: { status, node: this.options.nodeName, cost: taskContext.cost } }
       );
       await this.setTaskCount(status, "add");
+      if (taskContext.cost) {
+        await this.metricsController?.setTimeCoustGauge(taskContext.cost);
+      }
     } catch (err) {
       this.logWithTask(taskContext, "更新状态失败", err)
     }

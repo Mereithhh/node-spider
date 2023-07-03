@@ -9,6 +9,7 @@ export interface InitMetricsOption {
 
 export class MetricsController {
   statusGauge: Gauge | null = null
+  timeCoustGauge: Gauge | null = null
   register: promClient.Registry | null = null
   option: InitMetricsOption | null = null
   init(option: InitMetricsOption) {
@@ -24,6 +25,10 @@ export class MetricsController {
       help: "爬虫数量状态",
       labelNames: ["status"],
     });
+    this.timeCoustGauge = new promClient.Gauge({
+      name: "spider_time_coust",
+      help: "爬虫耗时",
+    });
     register.registerMetric(this.statusGauge);
     this.register = register;
   }
@@ -32,6 +37,9 @@ export class MetricsController {
   }
   setStatusGauge(status: TaskStatus, value: number) {
     this.statusGauge?.set({ status }, value);
+  }
+  setTimeCoustGauge(value: number) {
+    this.timeCoustGauge?.set(value);
   }
 
   metrics() {

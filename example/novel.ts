@@ -9,7 +9,7 @@ const spider = new NodeSpider({
 })
 
 spider.taskHandler = async (ctx) => {
-  const { url } = ctx.task;
+  const { url } = ctx.taskContext.task;
   const res = await ctx.request({
     method: "GET",
     url,
@@ -19,7 +19,7 @@ spider.taskHandler = async (ctx) => {
   const html = ctx.cheerio.load(string)
   const title = html("title").text();
   const content = html(".content").text();
-  console.log(title), content;
+  console.log(title, content)
   return {
     success: true
   }

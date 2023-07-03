@@ -1,8 +1,7 @@
 {
   "name": "node-spider",
   "type": "module",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.1",
   "packageManager": "pnpm@7.27.1",
   "description": "a very light nodejs spider framework",
   "author": "Merieth <wanglu@mereith.com>",

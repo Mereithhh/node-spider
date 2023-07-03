@@ -30,9 +30,9 @@ npm install task-spider
 
 ## 使用
 ```typescript
-import { NodeSpider } from "task-spider";
+import { TaskSpider } from "task-spider";
 
-const spider = new NodeSpider({
+const spider = new TaskSpider({
   taskDB: "testSpider",
   taskCollection: "tasks",
   saveCollection: "result",

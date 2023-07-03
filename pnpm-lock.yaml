@@ -17,6 +17,7 @@ specifiers:
   prom-client: ^14.2.0
   rimraf: ^5.0.1
   simple-git-hooks: ^2.8.1
+  task-spider: 'link:'
   typescript: ^5.0.4
   unbuild: ^1.2.1
   vite: ^4.3.9
@@ -28,6 +29,7 @@ dependencies:
   iconv-lite: 0.6.3
   mongodb: 5.6.0
   prom-client: 14.2.0
+  task-spider: 'link:'
 
 devDependencies:
   '@antfu/eslint-config': 0.39.6_iqf7tbmerllfqanu4l3d6aqdn4

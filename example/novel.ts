@@ -1,7 +1,7 @@
-import { NodeSpider } from "../src";
+import { TaskSpider } from "../src";
 
 
-const spider = new NodeSpider({
+const spider = new TaskSpider({
   taskDB: "testSpider",
   taskCollection: "tasks",
   saveCollection: "result",

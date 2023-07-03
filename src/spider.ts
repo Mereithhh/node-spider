@@ -131,7 +131,7 @@ export class TaskContext {
 }
 
 // 从某个任务来源拉取任务，然后执行任务，然后保存结果
-export class NodeSpider {
+export class TaskSpider {
   hasInited = false;
   taskHandler: taskHandlerFn | null = null;
   metricsController: MetricsController | null = null;
@@ -534,5 +534,5 @@ export class NodeSpider {
 
 
 
-export default NodeSpider;
+export default TaskSpider;
 

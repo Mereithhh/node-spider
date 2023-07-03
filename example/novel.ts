@@ -23,6 +23,16 @@ spider.taskHandler = async (ctx) => {
   const title = html("title").text();
   const content = html(".content").text();
   console.log(title, content)
+  await ctx.save({
+    result: {
+      title,
+      content
+    }
+  });
+  const nextLink = html(".bottem2 a").eq(3).attr("href")!;
+  await ctx.follow({
+    url: nextLink
+  })
   return {
     success: true
   }

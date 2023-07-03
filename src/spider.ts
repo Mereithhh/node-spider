@@ -38,6 +38,7 @@ export interface TaskHandlerParams {
   request: (config: AxiosRequestConfig) => Promise<AxiosResponse>;
   parser: CheerioAPI;
   convert: (buffer: Buffer, sourceEncoding: string) => string;
+  log: (...messages: any[]) => void;
 }
 
 export type TaskStatus = "idle" | "success" | "failed" | "processing"
@@ -379,7 +380,8 @@ export class TaskSpider {
         parser: cheerio,
         convert: (buffers: Buffer, sourceEncoding: string) => {
           return iconv.decode(buffers, sourceEncoding);
-        }
+        },
+        log: (...message: any[]) => this.logWithTask(taskContext, ...message),
       })
       return taskResult;
     } catch (err: any) {

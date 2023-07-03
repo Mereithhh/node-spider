@@ -12,25 +12,27 @@ const spider = new TaskSpider({
 })
 
 spider.taskHandler = async (ctx) => {
+  const { save, follow, request, convert, parser, log } = ctx;
+  const { task } = ctx.taskContext;
   const { url } = ctx.taskContext.task;
-  const res = await ctx.request({
+  const res = await request({
     method: "GET",
     url,
     responseType: "arraybuffer"
   });
-  const string = ctx.convert(res.data, "gbk")
-  const html = ctx.parser.load(string)
+  const string = convert(res.data, "gbk")
+  const html = parser.load(string)
   const title = html("title").text();
   const content = html(".content").text();
-  console.log(title, content)
-  await ctx.save({
+  log(title, content)
+  await save({
     result: {
       title,
       content
     }
   });
   const nextLink = html(".bottem2 a").eq(3).attr("href")!;
-  await ctx.follow({
+  await follow({
     url: nextLink
   })
   return {

@@ -6,9 +6,9 @@
 
 但我对爬取失败是不能容忍的，我也希望我每一次爬取都有迹可寻，所以我用 mongoDB 来当我的任务列表，所有的爬虫都先领任务，再执行，再领。
 
-![dashboard](https://raw.githubusercontent.com/Mereithhh/node-spider/blob/main/img/spider-dashboard.png)
+![dashboard](img/spider-dashboard.png)
 
-![dashboard](https://raw.githubusercontent.com/Mereithhh/node-spider/blob/main/img/spider-tasks.png)
+![dashboard](img/spider-tasks.png)
 
 ## 特色
 

@@ -54,7 +54,7 @@ spider.taskHandler = async (ctx) => {
     responseType: "arraybuffer"
   });
   const string = ctx.convert(res.data, "gbk")
-  const html = ctx.cheerio.load(string)
+  const html = ctx.parser.load(string)
   const title = html("title").text();
   const content = html(".content").text();
   console.log(title, content)

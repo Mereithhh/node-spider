@@ -36,7 +36,7 @@ export interface TaskHandlerParams {
   save: (options: SaveTaskPrarms) => Promise<boolean>;
   follow: (options: FollowTaskPrarms) => Promise<boolean>;
   request: (config: AxiosRequestConfig) => Promise<AxiosResponse>;
-  cheerio: CheerioAPI;
+  parser: CheerioAPI;
   convert: (buffer: Buffer, sourceEncoding: string) => string;
 }
 
@@ -376,7 +376,7 @@ export class TaskSpider {
           return await this.followTask(taskContext, options);
         },
         request: this.request.bind(this),
-        cheerio: cheerio,
+        parser: cheerio,
         convert: (buffers: Buffer, sourceEncoding: string) => {
           return iconv.decode(buffers, sourceEncoding);
         }

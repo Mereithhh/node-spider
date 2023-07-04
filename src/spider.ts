@@ -136,6 +136,7 @@ export class TaskContext {
 
 // 从某个任务来源拉取任务，然后执行任务，然后保存结果
 export class TaskSpider {
+  running = false;
   hasInited = false;
   taskHandler: taskHandlerFn | null = null;
   metricsController: MetricsController | null = null;
@@ -298,12 +299,26 @@ export class TaskSpider {
     this.hasInited = true;
   }
 
+  waitUtilFinish() {
+    return new Promise((resolve) => {
+      const wait = () => {
+        if (!this.running) {
+          resolve(true);
+        } else {
+          setTimeout(wait, 1000);
+        }
+      }
+      wait();
+    })
+  }
+
   exit() {
     this.log("正在退出...，需要：", this.options.maxTimeout * 2, "ms")
     this.exiting = true;
     setTimeout(async () => {
       this.client?.close();
       this.metricsController?.close();
+      this.running = false;
     }, this.options.maxTimeout * 2);
   }
 
@@ -335,6 +350,7 @@ export class TaskSpider {
       }
     }
     if (this.options.debug) {
+      this.running = true;
       runRecur();
       return;
     }
@@ -343,6 +359,8 @@ export class TaskSpider {
       runRecur();
     }
     this.log("已启动", this.options.maxConnection, "个连接")
+    this.running = true;
+    await this.waitUtilFinish();
   }
 
   async rollbackTask(taskContext: TaskContext, reason: string) {
@@ -352,7 +370,7 @@ export class TaskSpider {
 
   async checkMaxCount() {
     if (this.taskCount.failed + this.taskCount.success + this.taskCount.processing >= this.options.maxCount) {
-      this.log("已达到最大任务数，退出");
+      this.log("已达到最大任务数，准备退出");
       this.exit();
     }
   }

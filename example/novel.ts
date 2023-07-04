@@ -48,7 +48,6 @@ const main = async () => {
   if (success) {
     await spider.run();
   }
-
 }
 
 

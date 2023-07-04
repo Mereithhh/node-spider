@@ -12,6 +12,7 @@ export class MetricsController {
   timeCoustGauge: Gauge | null = null
   register: promClient.Registry | null = null
   option: InitMetricsOption | null = null
+  server: any = null
   init(option: InitMetricsOption) {
     this.option = option;
     const register = new promClient.Registry();
@@ -45,6 +46,9 @@ export class MetricsController {
   metrics() {
     return this.register?.metrics();
   }
+  async close() {
+    this.server?.close();
+  }
 
   async listen() {
     const server = await import("http").then((m) => m.createServer(async (req, res) => {
@@ -54,6 +58,7 @@ export class MetricsController {
         res.end(await this.metrics());
       }
     }));
+    this.server = server;
     server.listen(this.option?.port);
     console.log("metrics listen on", this.option?.port);
   }

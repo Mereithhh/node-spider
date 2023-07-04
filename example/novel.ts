@@ -5,10 +5,11 @@ const spider = new TaskSpider({
   taskDB: "testSpider",
   taskCollection: "tasks",
   saveCollection: "result",
-  debug: true,
+  debug: false,
   appName: "task-spider",
   metrics: true,
   metricsPort: 9999,
+  maxCount: 10,
 })
 
 spider.taskHandler = async (ctx) => {
@@ -33,7 +34,7 @@ spider.taskHandler = async (ctx) => {
   });
   const nextLink = html(".bottem2 a").eq(3).attr("href")!;
   await follow({
-    url: nextLink
+    url: "https://www.biquge.co/0_410/9449247.html",
   })
   return {
     success: true

@@ -217,6 +217,8 @@ export class TaskSpider {
   setExit() {
     process.on('unhandledRejection', (err) => {
       console.log('unhandledRejection', err);
+      this.client?.close();
+      this.metricsController?.close();
       process.exit(1);
     });
 
@@ -226,6 +228,8 @@ export class TaskSpider {
       this.exiting = true;
       await sleep(this.options.maxTimeout);
       await this.client?.close();
+      this.client?.close();
+      this.metricsController?.close();
       process.exit(0);
     });
 
@@ -233,7 +237,8 @@ export class TaskSpider {
       console.log('SIGTERM');
       this.exiting = true;
       await sleep(this.options.maxTimeout);
-      await this.client?.close();
+      this.client?.close();
+      this.metricsController?.close();
       process.exit(0);
     });
 
@@ -241,7 +246,8 @@ export class TaskSpider {
       console.log('exit');
       this.exiting = true;
       await sleep(this.options.maxTimeout);
-      await this.client?.close();
+      this.client?.close();
+      this.metricsController?.close();
       process.exit(0);
     });
   }
@@ -297,18 +303,14 @@ export class TaskSpider {
     this.exiting = true;
     setTimeout(async () => {
       this.client?.close();
-      process.exit(0);
+      this.metricsController?.close();
     }, this.options.maxTimeout * 2);
   }
 
   async run() {
     await this.init();
     const runRecur = async () => {
-      if (this.processCount <= 0) {
-        this.log("已无正在运行的连接数，准备退出")
-        this.exit();
-        return;
-      }
+
       const shouldContinue = await this.processTask();
       if (this.exiting) {
         setTimeout(() => { }, this.options.maxTimeout * 2);
@@ -326,6 +328,11 @@ export class TaskSpider {
         await runRecur();
       }
       this.processCount--;
+      if (this.processCount <= 0) {
+        this.log("已无正在运行的连接数，准备退出")
+        this.exit();
+        return;
+      }
     }
     if (this.options.debug) {
       runRecur();
@@ -335,6 +342,7 @@ export class TaskSpider {
     for (let i = 0; i < this.options.maxConnection; i++) {
       runRecur();
     }
+    this.log("已启动", this.options.maxConnection, "个连接")
   }
 
   async rollbackTask(taskContext: TaskContext, reason: string) {

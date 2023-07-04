@@ -80,6 +80,7 @@ export interface InitNodeSpiderOptions {
   metrics?: boolean;
   metricsPort?: number;
   appName: string;
+  maxCount?: number;
 }
 
 export interface NodeSpiderOptions {
@@ -101,6 +102,7 @@ export interface NodeSpiderOptions {
   metrics: boolean;
   metricsPort: number;
   appName: string;
+  maxCount: number;
 }
 
 export type taskHandlerFn = (ctx: TaskHandlerParams) => Promise<TaskResult>;
@@ -162,6 +164,7 @@ export class TaskSpider {
     metrics: false,
     metricsPort: 9880,
     appName: "task-spider",
+    maxCount: Number.MAX_VALUE,
   }
   exiting = false;
   client: MongoClient | null = null;
@@ -301,14 +304,19 @@ export class TaskSpider {
   async run() {
     await this.init();
     const runRecur = async () => {
+      if (this.processCount <= 0) {
+        this.log("已无正在运行的连接数，准备退出")
+        this.exit();
+        return;
+      }
       const shouldContinue = await this.processTask();
       if (this.exiting) {
         setTimeout(() => { }, this.options.maxTimeout * 2);
-        // this.processCount--;
+        this.processCount--;
         return;
       }
       if (this.options.debug) {
-        // this.processCount--;
+        this.processCount--;
         this.exit();
         return;
       }
@@ -317,13 +325,13 @@ export class TaskSpider {
         await sleep(this.options.sleep);
         await runRecur();
       }
-      // this.processCount--;
+      this.processCount--;
     }
     if (this.options.debug) {
       runRecur();
       return;
     }
-    // this.processCount = this.options.maxConnection;
+    this.processCount = this.options.maxConnection;
     for (let i = 0; i < this.options.maxConnection; i++) {
       runRecur();
     }
@@ -333,7 +341,17 @@ export class TaskSpider {
     await this.updateStatus(taskContext, "failed", reason);
   }
 
+
+  async checkMaxCount() {
+    if (this.taskCount.failed + this.taskCount.success + this.taskCount.processing >= this.options.maxCount) {
+      this.log("已达到最大任务数，退出");
+      this.exit();
+    }
+  }
+
   async processTask() {
+    await this.checkMaxCount();
+
     const task = await this.getOneTask();
 
     if (!task) {
